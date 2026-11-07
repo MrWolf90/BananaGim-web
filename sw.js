@@ -1,5 +1,5 @@
 /* Banana Gim service worker: offline app + reminders (Web Push) */
-const CACHE = 'bananagim-35';
+const CACHE = 'bananagim-36';
 const CORE = ['./', './index.html', './app.enc', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
