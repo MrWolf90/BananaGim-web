@@ -41,7 +41,7 @@
   </div>
 <script>
 (function(){
-  var LS = 'bg_web_code', BUILD = '41';
+  var LS = 'bg_web_code', BUILD = '42';
   var $ = function(id){ return document.getElementById(id); };
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -68,6 +68,7 @@
     var st = document.createElement('style'); st.textContent = fix(files.css); document.head.appendChild(st);
     var holder = document.createElement('div'); holder.innerHTML = fix(files.body);
     while (holder.firstChild) document.body.appendChild(holder.firstChild);
+    window.__lazyJs = files.lazy || {};
     files.scripts.forEach(function(s){
       var el = document.createElement('script'); el.async = false;
       el.src = URL.createObjectURL(new Blob([fix(s[1]) + '\n//# sourceURL=' + s[0]], { type: 'text/javascript' }));
