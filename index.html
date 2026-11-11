@@ -17,13 +17,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
   <style id="lockcss">
     html,body{margin:0;background:#120820;color:#fff;font-family:Nunito,system-ui,sans-serif;min-height:100%}
-    #lock{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
-    #lock h1{font-family:Bangers,Impact,sans-serif;font-size:52px;letter-spacing:2px;color:#ffd23f;text-shadow:3px 3px 0 #000;margin:10px 0 4px}
-    #lock p{max-width:340px;color:#d9c9f5;margin:6px 0 18px}
-    #lock .ban{font-size:72px;filter:drop-shadow(4px 4px 0 #000);animation:wob 2.4s ease-in-out infinite}
+    #lock,#langstep{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom));box-sizing:border-box;text-align:center}
+    #lock h1,#langstep h1{font-family:Bangers,Impact,sans-serif;font-size:52px;letter-spacing:2px;color:#ffd23f;text-shadow:3px 3px 0 #000;margin:10px 0 4px}
+    #lock p,#langstep p{max-width:340px;color:#d9c9f5;margin:6px 0 18px}
+    #lock .ban,#langstep .ban{font-size:72px;filter:drop-shadow(4px 4px 0 #000);animation:wob 2.4s ease-in-out infinite}
     @keyframes wob{50%{transform:rotate(-10deg) scale(1.05)}}
     #lock input{width:100%;max-width:320px;box-sizing:border-box;font-size:20px;padding:14px;border:3px solid #000;border-radius:14px;text-align:center;text-transform:uppercase;letter-spacing:2px;font-family:ui-monospace,monospace;box-shadow:4px 4px 0 #000}
-    #lock button{margin-top:14px;width:100%;max-width:320px;font-family:Bangers,Impact,sans-serif;font-size:24px;letter-spacing:1px;padding:12px;border:3px solid #000;border-radius:14px;background:#ffd23f;color:#000;box-shadow:4px 4px 0 #000}
+    #lock button,#langstep button{margin-top:14px;width:100%;max-width:320px;font-family:Bangers,Impact,sans-serif;font-size:24px;letter-spacing:1px;padding:12px;border:3px solid #000;border-radius:14px;background:#ffd23f;color:#000;box-shadow:4px 4px 0 #000}
+    #langstep button{font-size:28px;padding:14px}
+    #lock button#chlang{background:none;color:#d9c9f5;border:0;box-shadow:none;font-family:Nunito,system-ui,sans-serif;font-size:14px;letter-spacing:0;text-decoration:underline;padding:6px;margin-top:8px}
     #lock .err{color:#ff8fc8;min-height:22px;margin-top:10px;font-weight:700}
     #lock.busy button{opacity:.6}
     #a2hs{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9999;background:#ffd23f;color:#000;border:3px solid #000;border-radius:16px;box-shadow:4px 4px 0 #000;padding:12px 40px 12px 14px;font-size:14px;line-height:1.4}
@@ -31,21 +33,49 @@
   </style>
 </head>
 <body>
+  <!-- step 1: choose the language -->
+  <div id="langstep" style="display:none">
+    <div class="ban">🍌</div>
+    <h1>BANANA GIM</h1>
+    <p><b>Choose your language · Scegli la lingua</b></p>
+    <button type="button" data-l="en">🇬🇧 English</button>
+    <button type="button" data-l="it">🇮🇹 Italiano</button>
+  </div>
+  <!-- step 2: access code -->
   <div id="lock" style="display:none">
     <div class="ban">🍌</div>
     <h1>BANANA GIM</h1>
-    <p>Private app. Enter your access code to unlock it. You only need to do this once on this phone.</p>
+    <p id="lockp">Private app. Enter your access code to unlock it. You only need to do this once on this phone.</p>
     <input id="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ACCESS CODE">
     <button id="go">UNLOCK</button>
+    <button id="chlang" type="button">🌍 English / Italiano</button>
     <div class="err" id="err"></div>
   </div>
 <script>
 (function(){
-  var LS = 'bg_web_code', BUILD = '65';
+  var LS = 'bg_web_code', LK = 'bg_lang', BUILD = '72';
   var $ = function(id){ return document.getElementById(id); };
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+
+  // ---------- language (first step) ----------
+  var TXT = {
+    en: { p: 'Private app. Enter your access code to unlock it. You only need to do this once on this phone.', ph: 'ACCESS CODE', go: 'UNLOCK',
+          unl: '🔓 Unlocking…', off: 'No internet. Connect once to unlock.', ask: 'Enter your access code.', bad: 'Wrong code. Try again.',
+          a2: '<button class="x" aria-label="Close">×</button><b>📲 Install Banana Gim:</b> tap <b>Share ⬆️</b> below, then <b>Add to Home Screen</b>. Open it from the new icon: full screen, offline, and reminders work.' },
+    it: { p: 'App privata. Inserisci il tuo codice di accesso per sbloccarla. Lo fai una volta sola su questo telefono.', ph: 'CODICE DI ACCESSO', go: 'SBLOCCA',
+          unl: '🔓 Sblocco in corso…', off: 'Nessuna connessione. Collegati a internet una volta per sbloccare.', ask: 'Inserisci il tuo codice di accesso.', bad: 'Codice sbagliato. Riprova.',
+          a2: '<button class="x" aria-label="Chiudi">×</button><b>📲 Installa Banana Gim:</b> tocca <b>Condividi ⬆️</b> qui sotto, poi <b>Aggiungi alla schermata Home</b>. Aprila dalla nuova icona: schermo intero, offline, e i promemoria funzionano.' }
+  };
+  var lang = ''; try { lang = localStorage.getItem(LK) || ''; } catch (e) {}
+  if (lang !== 'it' && lang !== 'en') lang = '';
+  function T(){ return TXT[lang || 'en']; }
+  function applyLang(){
+    var t = T(); document.documentElement.lang = lang || 'en';
+    $('lockp').textContent = t.p; $('code').placeholder = t.ph; $('go').textContent = t.go;
+  }
+  function setLang(l){ lang = l; try { localStorage.setItem(LK, l); } catch (e) {} applyLang(); }
 
   function unb64(s){ var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
   async function getPack(){
@@ -64,7 +94,7 @@
   function boot(files){
     var face = URL.createObjectURL(new Blob([unb64(files.face)], { type: 'image/png' }));
     var fix = function(t){ return t.split('yoshi_face.png').join(face); };
-    $('lock').remove(); $('lockcss').remove();
+    $('lock').remove(); $('langstep').remove(); $('lockcss').remove();
     var st = document.createElement('style'); st.textContent = fix(files.css); document.head.appendChild(st);
     var holder = document.createElement('div'); holder.innerHTML = fix(files.body);
     while (holder.firstChild) document.body.appendChild(holder.firstChild);
@@ -78,28 +108,46 @@
   }
   function showA2hs(){
     var d = document.createElement('div'); d.id = 'a2hs';
-    d.innerHTML = '<button class="x" aria-label="Close">×</button><b>📲 Install Banana Gim:</b> tap <b>Share ⬆️</b> below, then <b>Add to Home Screen</b>. Open it from the new icon: full screen, offline, and reminders work.';
+    d.innerHTML = T().a2;
     d.querySelector('.x').onclick = function(){ localStorage.setItem('bg_a2hs_hide', '1'); d.remove(); };
     document.body.appendChild(d);
   }
   async function tryCode(code, quiet){
     code = (code || '').trim().toUpperCase(); if (!code) return false;
-    $('lock').className = 'busy'; $('err').textContent = quiet ? '' : '🔓 Unlocking…';
+    var t = T();
+    $('lock').className = 'busy'; $('err').textContent = quiet ? '' : t.unl;
     try {
       var pack = await getPack();
       var files = await decrypt(pack, code);
       localStorage.setItem(LS, code); boot(files); return true;
     } catch (e) {
+      $('langstep').style.display = 'none';
       $('lock').className = ''; $('lock').style.display = 'flex';
-      $('err').textContent = String(e.message) === 'offline' ? 'No internet. Connect once to unlock.' : (quiet ? 'Enter your access code.' : 'Wrong code. Try again.');
+      $('err').textContent = String(e.message) === 'offline' ? t.off : (quiet ? t.ask : t.bad);
       if (quiet && String(e.message) !== 'offline') localStorage.removeItem(LS);
       return false;
     }
   }
   $('go').onclick = function(){ tryCode($('code').value); };
   $('code').onkeydown = function(e){ if (e.key === 'Enter') tryCode($('code').value); };
-  var saved = localStorage.getItem(LS);
-  if (saved) tryCode(saved, true); else { $('lock').style.display = 'flex'; }
+
+  // step 1 -> step 2
+  function showLangStep(){ $('lock').style.display = 'none'; $('langstep').style.display = 'flex'; }
+  function afterLang(){
+    $('langstep').style.display = 'none';
+    var saved = localStorage.getItem(LS);
+    if (saved) tryCode(saved, true); else { $('lock').style.display = 'flex'; }
+  }
+  $('langstep').addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('button[data-l]'); if (!b) return;
+    var changed = lang && lang !== b.getAttribute('data-l');
+    setLang(b.getAttribute('data-l'));
+    // the app (already unlocked once) reads the same setting: apply the new language
+    afterLang();
+  });
+  $('chlang').onclick = showLangStep;
+  applyLang();
+  if (!lang) showLangStep(); else afterLang();
 })();
 </script>
 </body>
